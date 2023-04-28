@@ -1,13 +1,8 @@
 package main
 
 import (
-	"embed"
 	_ "embed"
-	"fmt"
 	"image/color"
-	"io/fs"
-	"strconv"
-	"strings"
 
 	"gioui.org/app"
 	"gioui.org/font"
@@ -20,44 +15,38 @@ import (
 	"gioui.org/widget"
 )
 
-//go:embed *.ttf
-var localFonts embed.FS
+//go:embed JetBrainsMono-500.ttf
+var j500 []byte
+
+//go:embed Montserrat-300.ttf
+var m300 []byte
 
 func main() {
 
 	fonts := make([]text.FontFace, 0)
 
-	fs.WalkDir(localFonts, ".", func(path string, d fs.DirEntry, err error) error {
-		split := strings.Split(strings.Replace(strings.TrimRight(d.Name(), ".ttf"), "-", "_", -1), "_")
-		if len(split) != 2 {
-			return nil
-		}
-
-		name := split[0]
-		weight, _ := strconv.ParseInt(split[1], 10, 32)
-		fmt.Println(name)
-		fmt.Println(weight)
-
-		file, err := fs.ReadFile(localFonts, path)
+	{
+		face, err := opentype.Parse(j500)
 		if err != nil {
-			return err
-		}
-
-		face, err := opentype.Parse(file)
-		if err != nil {
-			return err
+			panic(err)
 		}
 
 		fonts = append(fonts, text.FontFace{
-			Font: font.Font{
-				Typeface: font.Typeface(name),
-				Weight:   font.Weight(weight),
-			},
+			Font: font.Font{Typeface: "JetBrainsMono", Weight: 500},
 			Face: face,
 		})
+	}
 
-		return nil
-	})
+	{
+		face, err := opentype.Parse(m300)
+		if err != nil {
+			panic(err)
+		}
+		fonts = append(fonts, text.FontFace{
+			Font: font.Font{Typeface: "Montserrat", Weight: 300},
+			Face: face,
+		})
+	}
 
 	shaper := text.NewShaper(fonts)
 
